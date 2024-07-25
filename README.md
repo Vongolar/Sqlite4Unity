@@ -97,7 +97,7 @@ using (var db = new Database(DB_PATH))
 }
 ```
 该方法返回使用dynamic类型。<br>如果需要更好的性能，可以直接使用 Database.Prepare 等底层方法。<br>
-如果希望游戏运行更加流程，可以在主线程以外条用，也可以调用Query的迭代器版本。
+如果希望游戏运行更加流程，可以在主线程以外调用，也可以调用Query的迭代器版本。
 
 ## 跨平台
 因为直接使用C源码作为Native Plugin，所以理论上可以支持全部平台。但要注意，在WebGL平台以及以WebGL为基础的小游戏平台上，Application.persistentDataPath并不具备持久化能力，需要针对平台自行处理持久化问题。
