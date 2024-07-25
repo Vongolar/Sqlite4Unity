@@ -1,182 +1,195 @@
-// using System.IO;
-// using Sqlite;
-// using UnityEngine;
-// using System.Text;
-// using System.Threading;
-// using UnityEngine.UI;
-// using System;
+/*
+ * This file is used to detect memory leaks and cover common use cases.
+ * by Vongolar
+ */
+using System.IO;
+using Sqlite;
+using UnityEngine;
+using System.Text;
+using UnityEngine.UI;
+using System.Collections;
+using System;
 
-// public class SqliteSample : MonoBehaviour
-// {
-//     [SerializeField]
-//     Button btnStart;
+public class SqliteSample : MonoBehaviour
+{
+    [SerializeField]
+    Button btnStart;
 
-//     [SerializeField]
-//     Button btnEnd;
+    [SerializeField]
+    Button btnEnd;
 
-//     long running = 0;
-//     void Start()
-//     {
-//         var path = Path.Combine(Application.persistentDataPath, "test.db");
-//         btnStart.onClick.AddListener(() =>
-//         {
-//             if (Interlocked.CompareExchange(ref running, 1, 0) == 0)
-//             {
-//                 ThreadPool.QueueUserWorkItem((_) =>
-//                 {
-//                     // while (Interlocked.Read(ref running) == 1)
-//                     // {
-//                         TestOpenDatabase(path);
-//                     // }
-//                 });
-//             }
+    Coroutine cur;
+    Database db;
+    void Start()
+    {
+        btnStart.onClick.AddListener(StartTest);
+        btnEnd.onClick.AddListener(() =>
+        {
+            if (cur != null)
+            {
+                StopCoroutine(cur);
+                db?.Dispose();
+                cur = null;
+            }
+        });
+    }
 
-//         });
+    void OnApplicationQuit()
+    {
+        db?.Dispose();
+    }
 
-//         btnEnd.onClick.AddListener(() =>
-//         {
-//             Interlocked.Exchange(ref running, 0);
-//         });
-//     }
+    void StartTest()
+    {
+        if (cur != null) return;
 
-//     void OnApplicationQuit()
-//     {
-//         Interlocked.Exchange(ref running, 0);
-//     }
+        cur = StartCoroutine(Loop());
+    }
 
-//     void TestOpenDatabase(string path)
-//     {
-//         var count = 100000;//new System.Random().Next(0, 100000);
-//         using (var db = new Database(path))
-//         {
-//             var code = db.Open();
-//             // while (true)
-//             while (Interlocked.Read(ref running) == 1)
-//             // #endif
-//             {
-//                 var errStr = string.Empty;
-//                 if (code != RESULT_CODE.SQLITE_OK) return;
+    IEnumerator Loop()
+    {
+        var path = Path.Combine(Application.persistentDataPath, "sample.db");
+        var loopCount = 0;
+        while (true)
+        {
+            using (db = new Database(path))
+            {
+                db.Open();
+                yield return null;
+                yield return CURD();
+            }
+            db = null;
+            Debug.Log($"Loop {++loopCount}");
+        }
+    }
 
-//                 code = db.Excute(@"DROP TABLE IF EXISTS test;CREATE TABLE IF NOT EXISTS test (ID INTEGER PRIMARY KEY,Name TEXT NO NULL,ATK INTEGER,DEF REAL,DES BLOB);");
-//                 if (code != RESULT_CODE.SQLITE_OK) return;
-//                 // 增
-//                 {
-//                     code = db.BeginTransaction();
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
+    IEnumerator CURD()
+    {
+        yield return Create();
+        yield return Read();
+        yield return UpdateTable();
+        yield return Read2();
+    }
 
-//                     errStr = db.lstErrMsg;
+    IEnumerator Create()
+    {
+        var code = db.DropTable("table1");
+        if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
 
-//                     code = db.Prepare(@"INSERT INTO test (ID, Name, ATK,DEF ,DES) VALUES (?,?,?,?,?);", out Statement stmt);
-//                     if (code != RESULT_CODE.SQLITE_OK)
-//                     {
-//                         db.Rollback();
-//                         return;
-//                     }
-//                     errStr = db.lstErrMsg;
-//                     code = stmt.Exec(count, (s, i) =>
-//                         {
-//                             var bindCode = s.Bind(1, i);
-//                             if (bindCode != RESULT_CODE.SQLITE_OK) return bindCode;
+        code = db.CreateTable("table1", "ID INTEGER PRIMARY KEY", "Name TEXT NO NULL", " HP INTEGER", "SEX REAL", " DES BLOB");
+        if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
 
-//                             bindCode = s.Bind(2, $"This card Name is No.  编号. {i}");
-//                             if (bindCode != RESULT_CODE.SQLITE_OK) return bindCode;
+        yield return null;
 
-//                             bindCode = s.Bind(3, long.MaxValue - i);
-//                             if (bindCode != RESULT_CODE.SQLITE_OK) return bindCode;
+        var count = 10000;
+        var batch = 100;
+        var index = 0;
+        for (var b = 0; b < batch; b++)
+        {
+            var data = new dynamic[count][];
+            for (var i = 0; i < count; i++, index++)
+            {
+                data[i] = new dynamic[] { index + 1, $"No. {index + 1}", long.MaxValue, double.MaxValue, UTF8Encoding.UTF8.GetBytes($"This is No. {index + 1}.") };
+            }
+            code = db.ExecWithTransaction("INSERT INTO table1 (ID, Name, HP, SEX, DES) VALUES (?,?,?,?,?);", data);
+            if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
+            yield return null;
+        }
+    }
 
-//                             bindCode = s.Bind(4, i + 0.0001);
-//                             if (bindCode != RESULT_CODE.SQLITE_OK) return bindCode;
+    IEnumerator Read()
+    {
+        var sql = @"SELECT ID, Name, HP, SEX, DES FROM table1;";
+        var count = 0;
+        foreach (var (code, row) in db.Query(sql, new Database.FieldType[] { Database.FieldType.INT, Database.FieldType.TEXT, Database.FieldType.LONG, Database.FieldType.DOUBLE, Database.FieldType.BLOB }))
+        {
+            if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
+            count++;
 
-//                             var str = $"This card Name is No. {i}";
-//                             var bytes = ASCIIEncoding.ASCII.GetBytes(str);
-//                             return s.Bind(5, bytes);
-//                         });
+            var id = (row[0] as int?) ?? -1;
+            if (id != count) throw new Exception($"the {count}th id {id} != {count}");
 
-//                     stmt.Release();
-//                     if (code != RESULT_CODE.SQLITE_OK)
-//                     {
-//                         db.Rollback();
-//                         return;
-//                     }
-//                     errStr = db.lstErrMsg;
-//                     code = db.Commit();
-//                     if (code != RESULT_CODE.SQLITE_OK)
-//                     {
-//                         db.Rollback();
-//                         return;
-//                     }
-//                     errStr = db.lstErrMsg;
-//                 }
+            var name = row[1] as string;
+            if (name != $"No. {count}") throw new Exception($"the {count}th name {name} != No. {count}");
 
-//                 // 查
-//                 {
-//                     code = db.Prepare(@"SELECT ID, Name, ATK, DEF, DES FROM test;", out Statement stmt);
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
-//                     var index = 0;
-//                     code = stmt.Query((stmt) =>
-//                     {
-//                         stmt.Get(0, out int id);
-//                         UnityEngine.Debug.Assert(id == index);
+            var hp = (row[2] as long?) ?? 0;
+            if (hp != long.MaxValue) throw new Exception($"the {count}th hp {hp} != {long.MaxValue}");
 
-//                         stmt.Get(1, out string name);
-//                         UnityEngine.Debug.Assert(name == $"This card Name is No.  编号. {id}");
+            var sex = (row[3] as double?) ?? 0;
+            if (sex != double.MaxValue) throw new Exception($"the {count}th sex {sex} != {double.MaxValue}");
 
-//                         stmt.Get(2, out long atk);
-//                         UnityEngine.Debug.Assert(atk == long.MaxValue - id);
+            var des = row[4] as byte[];
+            if (!isSameBytes(des, UTF8Encoding.UTF8.GetBytes($"This is No. {count}."))) throw new Exception($"the {count}th desciption does not match");
 
-//                         stmt.Get(3, out double def);
-//                         UnityEngine.Debug.Assert(def == id + 0.0001);
+            if (count % 5000 == 0) yield return null;
+        }
+        if (count != 10000 * 100) throw new Exception($"only read {count} row");
+    }
 
-//                         stmt.Get(4, out byte[] des);
-//                         var str = $"This card Name is No. {id}";
-//                         var bytes = ASCIIEncoding.ASCII.GetBytes(str);
+    IEnumerator UpdateTable()
+    {
+        var code = db.Exec("UPDATE table1 SET Name = ?, HP = ?, SEX = ?, DES = ? WHERE ID % 2 = 0;", new dynamic[][]{
+            new dynamic[]{"No Name", long.MinValue, double.MinValue, null}
+        });
+        if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
+        yield return null;
+    }
 
-//                         UnityEngine.Debug.Assert(isSameBytes(bytes, des));
+    IEnumerator Read2()
+    {
+        var sql = @"SELECT ID, Name, SEX, DES FROM table1;";
+        var count = 0;
+        foreach (var (code, row) in db.Query(sql, new Database.FieldType[] { Database.FieldType.INT, Database.FieldType.TEXT, Database.FieldType.DOUBLE, Database.FieldType.BLOB }))
+        {
+            if (code != RESULT_CODE.SQLITE_OK) throw new Exception($"{db.lstExtendedResultCode}\n{db.lstErrMsg}");
+            count++;
 
-//                         index++;
-//                     });
-//                     stmt.Release();
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
-//                     errStr = db.lstErrMsg;
-//                 }
+            var id = (row[0] as int?) ?? -1;
+            if (id != count) throw new Exception($"the {count}th id {id} != {count}");
 
-//                 // 删
-//                 {
-//                     code = db.Excute(@"DELETE FROM test WHERE ID % 2 = 0;");
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
-//                     errStr = db.lstErrMsg;
-//                 }
+            var name = row[1] as string;
+            if (id % 2 == 0)
+            {
+                if (name != "No Name") throw new Exception($"the {count}th name {name} != No Name");
+            }
+            else
+            {
+                if (name != $"No. {count}") throw new Exception($"the {count}th name {name} != No. {count}");
+            }
 
-//                 // 查有无偶数
-//                 {
-//                     code = db.Prepare(@"SELECT COUNT(*) FROM test WHERE ID % 2 = 0;", out Statement stmt);
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
-//                     var index = 0;
-//                     code = stmt.Query((stmt) =>
-//                     {
-//                         stmt.Get(0, out int count);
-//                         UnityEngine.Debug.Assert(count == 0);
+            var sex = (row[2] as double?) ?? 0;
+            if (id % 2 == 0)
+            {
+                if (sex != double.MinValue) throw new Exception($"the {count}th sex {sex} != {double.MinValue}");
+            }
+            else
+            {
+                if (sex != double.MaxValue) throw new Exception($"the {count}th sex {sex} != {double.MaxValue}");
+            }
 
-//                         index++;
-//                     });
-//                     stmt.Release();
-//                     if (code != RESULT_CODE.SQLITE_OK) return;
-//                     UnityEngine.Debug.Assert(index == 1);
-//                     errStr = db.lstErrMsg;
-//                 }
+            var des = row[3] as byte[];
+            if (id % 2 == 0)
+            {
+                if ((des?.Length ?? 0) != 0) throw new Exception($"the {count}th desciption is no null");
+            }
+            else
+            {
+                if (!isSameBytes(des, UTF8Encoding.UTF8.GetBytes($"This is No. {count}."))) throw new Exception($"the {count}th desciption does not match");
+            }
 
-//             }
-//         }
-//     }
+            if (count % 5000 == 0) yield return null;
+        }
+        if (count != 10000 * 100) throw new Exception($"only read {count} row");
+    }
 
-//     bool isSameBytes(byte[] a, byte[] b)
-//     {
-//         if (a?.Length != b?.Length) return false;
-//         for (var i = 0; i < a?.Length; i++)
-//         {
-//             if (a[i] != b[i]) return false;
-//         }
-//         return true;
-//     }
+    bool isSameBytes(byte[] a, byte[] b)
+    {
+        if (a?.Length != b?.Length) return false;
+        for (var i = 0; i < a?.Length; i++)
+        {
+            if (a[i] != b[i]) return false;
+        }
+        return true;
+    }
 
-// }
+}
