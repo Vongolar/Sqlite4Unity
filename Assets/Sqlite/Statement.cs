@@ -1,3 +1,7 @@
+/*
+ * the file contains encapsulation methods for Statement.
+ * by Vongolar
+ */
 using System;
 
 namespace Sqlite
