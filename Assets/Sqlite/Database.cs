@@ -74,7 +74,7 @@ namespace Sqlite
                 var tmp = activing?.ToArray(); // can't change collection in foreach loop
                 foreach (var stmt in tmp)
                 {
-                    stmt.Release();
+                    stmt.Finalize();
                 }
             }
 
@@ -128,7 +128,7 @@ namespace Sqlite
                 {
                     foreach (var stmt in stmts)
                     {
-                        stmt.Release();
+                        stmt.Finalize();
                     }
                     stmts = null;
                 }
@@ -146,7 +146,7 @@ namespace Sqlite
                 UnityEngine.Debug.LogWarning($"[sqlite3] prepare single stmt but not a single sql!");
                 for (var i = 1; i < stmts.Count; i++)
                 {
-                    stmts[i].Release();
+                    stmts[i].Finalize();
                 }
             }
             return code;

@@ -70,7 +70,7 @@ namespace Sqlite
             {
                 foreach (var stmt in stmts)
                 {
-                    stmt.Release();
+                    stmt.Finalize();
                 }
             };
 
@@ -193,7 +193,7 @@ namespace Sqlite
                                 row[i] = value;
                                 if (code != RESULT_CODE.SQLITE_ROW)
                                 {
-                                    stmt.Release();
+                                    stmt.Finalize();
                                     yield return (code, null);
                                     yield break;
                                 }
@@ -205,7 +205,7 @@ namespace Sqlite
                                 row[i] = value;
                                 if (code != RESULT_CODE.SQLITE_ROW)
                                 {
-                                    stmt.Release();
+                                    stmt.Finalize();
                                     yield return (code, null);
                                     yield break;
                                 }
@@ -217,7 +217,7 @@ namespace Sqlite
                                 row[i] = value;
                                 if (code != RESULT_CODE.SQLITE_ROW)
                                 {
-                                    stmt.Release();
+                                    stmt.Finalize();
                                     yield return (code, null);
                                     yield break;
                                 }
@@ -229,7 +229,7 @@ namespace Sqlite
                                 row[i] = value;
                                 if (code != RESULT_CODE.SQLITE_ROW)
                                 {
-                                    stmt.Release();
+                                    stmt.Finalize();
                                     yield return (code, null);
                                     yield break;
                                 }
@@ -241,7 +241,7 @@ namespace Sqlite
                                 row[i] = value;
                                 if (code != RESULT_CODE.SQLITE_ROW)
                                 {
-                                    stmt.Release();
+                                    stmt.Finalize();
                                     yield return (code, null);
                                     yield break;
                                 }
@@ -252,7 +252,7 @@ namespace Sqlite
                 yield return (RESULT_CODE.SQLITE_OK, row);
             }
 
-            stmt.Release();
+            stmt.Finalize();
         }
 
         public RESULT_CODE Query(string sql, FieldType[] types, out List<dynamic[]> res)
