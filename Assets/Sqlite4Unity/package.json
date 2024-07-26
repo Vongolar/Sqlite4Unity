@@ -2,13 +2,26 @@
   "name": "com.vongolar.sqlite4unity",
   "version": "1.0.0",
   "displayName": "Sqlite For Unity",
-  "description": "This is a encapsulation of sqlite3 interface ",
+  "description": "This package includes low-level interfaces and high-level abstractions for sqlite3.",
   "dependencies": {
+    "com.unity.memoryprofiler": "1.1.0",
     "com.unity.ugui": "1.0.0"
   },
   "author": {
     "name": "Vongolar",
     "email": "1021964925@qq.com",
     "url": "https://github.com/Vongolar/Sqlite4Unity"
-  }
+  },
+  "keywords": [
+    "sqlite3",
+    "sqlite",
+    "database"
+  ],
+  "samples": [
+    {
+      "displayName": "CRUD",
+      "description": "Perform database operations in a loop, check for functionality and whether there are any memory leaks.",
+      "path": "Samples~/SamplesCRUD"
+    }
+  ]
 }

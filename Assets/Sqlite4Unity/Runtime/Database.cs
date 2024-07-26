@@ -10,7 +10,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using UnityEngine.Pool;
 
-namespace Sqlite
+namespace Vongolar.Sqlite
 {
     public partial class Database : IDisposable
     {

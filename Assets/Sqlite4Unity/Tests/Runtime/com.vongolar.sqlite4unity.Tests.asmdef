@@ -1,10 +1,10 @@
 {
-    "name": "Sqlite.Test",
+    "name": "com.vongolar.sqlite4unity.Tests",
     "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Sqlite"
+        "com.vongolar.sqlite4unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,9 +1,7 @@
 {
-    "name": "vongolar.sqlite4unity.sample",
-    "rootNamespace": "",
-    "references": [
-        "GUID:663612a290e66074caa98f67b1e6de0f"
-    ],
+    "name": "com.vongolar.sqlite4unity",
+    "rootNamespace": "Vongolar.Sqlite",
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,

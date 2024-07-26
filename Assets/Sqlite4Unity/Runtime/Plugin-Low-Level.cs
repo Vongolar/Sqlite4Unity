@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using AOT;
 
-namespace Sqlite
+namespace Vongolar.Sqlite
 {
     partial class Database
     {

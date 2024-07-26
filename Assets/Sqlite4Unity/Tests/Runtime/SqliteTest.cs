@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text;
 using NUnit.Framework;
-using Sqlite;
+using Vongolar.Sqlite;
 using UnityEngine;
 
 public class SqliteTest

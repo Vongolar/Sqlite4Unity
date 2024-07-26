@@ -4,7 +4,7 @@
  */
 using System;
 
-namespace Sqlite
+namespace Vongolar.Sqlite
 {
     public class Statement
     {

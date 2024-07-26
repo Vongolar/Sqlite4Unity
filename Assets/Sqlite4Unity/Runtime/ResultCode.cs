@@ -2,7 +2,7 @@
  * define the result codes returned by SQLite API, refer to the webpage https://www.sqlite.org/rescode.html
  * by Vongolar
  */
-namespace Sqlite
+namespace Vongolar.Sqlite
 {
     public enum RESULT_CODE
     {
