@@ -4,7 +4,7 @@
   "displayName": "Sqlite For Unity",
   "description": "This is a encapsulation of sqlite3 interface ",
   "dependencies": {
-    "com.unity.ugui": "2.0.0"
+    "com.unity.ugui": "1.0.0"
   },
   "author": {
     "name": "Vongolar",
