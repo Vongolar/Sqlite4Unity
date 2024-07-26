@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "displayName": "Sqlite For Unity",
   "description": "This is a encapsulation of sqlite3 interface ",
-  "unity": "2022.3.37f1",
   "dependencies": {
     "com.unity.ugui": "2.0.0"
   },
