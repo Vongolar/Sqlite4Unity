@@ -3,7 +3,8 @@
 This project allows for easy use of SQLite databases in Unity and supports running on various platforms. <br>All methods return results through error codes and do not throw exceptions.
 
 ## Installation
-Simply import the 'Assets/Sqlite' folder into your Unity project, or import it from the Unity Asset Store.
+add package from git url<br>
+git@github.com:Vongolar/Sqlite4Unity.git?path=/Assets/Sqlite4Unity
 
 ## Usage Examples
 ### Insert Data
@@ -58,7 +59,8 @@ Since it uses C source code as a Native Plugin, it theoretically supports all pl
 所有方法均通过错误码返回结果，不会有异常抛出。
 
 ## 安装
-直接将Assets/Sqlite文件夹导入Unity工程，或者从Unity Asset Store上导入。
+add package from git url<br>
+git@github.com:Vongolar/Sqlite4Unity.git?path=/Assets/Sqlite4Unity
 ## 使用示例
 ### 增加数据
 ```

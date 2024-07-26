@@ -1,0 +1,1 @@
+For detailed documentation, please see [Assets/Sqlite4Unity/README.md](Assets/Sqlite4Unity/README.md).
