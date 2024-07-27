@@ -1,6 +1,6 @@
 {
   "name": "com.vongolar.sqlite4unity",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "displayName": "Sqlite For Unity",
   "description": "This package includes low-level interfaces and high-level abstractions for sqlite3.",
   "dependencies": {
