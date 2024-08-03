@@ -4,7 +4,6 @@
  */
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 namespace Vongolar.Sqlite
 {
@@ -30,9 +29,6 @@ namespace Vongolar.Sqlite
             var code = BeginTransaction();
             if (code != RESULT_CODE.SQLITE_OK) return code;
 
-            var sw = new Stopwatch();
-            sw.Start();
-
             code = Exec(sql, bindDatas);
             if (code != RESULT_CODE.SQLITE_OK)
             {
@@ -40,7 +36,6 @@ namespace Vongolar.Sqlite
                 return code;
             }
 
-            sw.Restart();
             code = Commit();
             if (code != RESULT_CODE.SQLITE_OK)
             {

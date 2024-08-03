@@ -51,16 +51,7 @@ namespace Vongolar.Sqlite
         internal RESULT_CODE finalize()
         {
             if (ptr == IntPtr.Zero) return RESULT_CODE.SQLITE_OK;
-            RESULT_CODE code = RESULT_CODE.SQLITE_OK;
-            try
-            {
-                code = db.finalize(ptr);
-            }
-            catch (Exception e)
-            {
-                UnityEngine.Debug.LogError(e);
-            }
-
+            var code = db.finalize(ptr);
             ptr = IntPtr.Zero;
             return code;
         }
